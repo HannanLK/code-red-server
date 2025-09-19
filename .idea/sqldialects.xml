@@ -4,5 +4,9 @@
     <file url="file://$PROJECT_DIR$/db/Migration/001_create_users_and_authentication.sql" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/db/Migration/002_create_games_core.sql" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/db/Migration/003_create_dictionary_system.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/db/Migration/004_create_bot_system.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/db/Migration/005_create_statistics_and_analytics.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/db/Migration/006_create_social_and_chat.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/db/Migration/007_create_optimization_and_maintenance.sql" dialect="PostgreSQL" />
   </component>
 </project>

@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourcePerFileMappings">
-    <file url="file://$APPLICATION_CONFIG_DIR$/consoles/db/9b82d8ab-9d92-4baa-922e-f945d0ba2139/console.sql" value="9b82d8ab-9d92-4baa-922e-f945d0ba2139" />
     <file url="file://$PROJECT_DIR$/db/Migration/001_create_users_and_authentication.sql" value="9b82d8ab-9d92-4baa-922e-f945d0ba2139" />
     <file url="file://$PROJECT_DIR$/db/Migration/002_create_games_core.sql" value="9b82d8ab-9d92-4baa-922e-f945d0ba2139" />
     <file url="file://$PROJECT_DIR$/db/Migration/003_create_dictionary_system.sql" value="9b82d8ab-9d92-4baa-922e-f945d0ba2139" />
+    <file url="file://$PROJECT_DIR$/db/Migration/004_create_bot_system.sql" value="9b82d8ab-9d92-4baa-922e-f945d0ba2139" />
+    <file url="file://$PROJECT_DIR$/db/Migration/005_create_statistics_and_analytics.sql" value="9b82d8ab-9d92-4baa-922e-f945d0ba2139" />
+    <file url="file://$PROJECT_DIR$/db/Migration/006_create_social_and_chat.sql" value="9b82d8ab-9d92-4baa-922e-f945d0ba2139" />
+    <file url="file://$PROJECT_DIR$/db/Migration/007_create_optimization_and_maintenance.sql" value="9b82d8ab-9d92-4baa-922e-f945d0ba2139" />
   </component>
 </project>

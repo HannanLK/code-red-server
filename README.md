@@ -1,56 +1,54 @@
 Code-Red Server (FastAPI + Socket.IO)
 
-This server provides a minimal backend to support the client features for Stage 2 (Secure Game Clock) and basic Stage 3 bot scaffolding.
+Overview
+Authoritative Scrabble game server that manages matchmaking, game state, and a secure server‑side timer (10 minutes per player). Randomizes starting player and supports concurrent games. A simple bot is available for instant matchmaking.
 
 Quick start
-1) Install dependencies
+1) Create virtual env and install deps
+   python -m venv .venv
+   .venv\\Scripts\\activate
    pip install -r requirements.txt
 
 2) Run the server (ASGI)
    uvicorn app.main:application --reload --host 0.0.0.0 --port 8000
 
-Socket.IO events (subset)
+Matchmaking & games
+- Lobby: clients emit 'join-game' with a gameId (room). If two humans aren't present, the manager can attach a bot.
+- Concurrency: each game is a room; state is kept per room in memory (dev only).
+- Start: when the first player joins, the game is created; when the second joins, status changes to active; the server randomly selects the starting player and starts their clock.
+
+Socket.IO events
 Client -> Server
-- 'join-game': (gameId: string) => void
-- 'game:start': (roomId: string) => void
-- 'make-move': (move: Move) => void
-- 'pass-turn': () => void
-- 'ping': () => void
+- 'join-game': (gameId: string)
+- 'game:start': (roomId: string)
+- 'make-move': (move: Move)
+- 'pass-turn': ()
+- 'ping': ()
 
 Server -> Client
-- 'game-state': (state: GameState) => void
-- 'move-made': (move: Move) => void
-- 'turn-changed': (playerId: string) => void
-- 'timer-sync': (times: TimerState) => void
-- 'timer-expired': (player: 'player1' | 'player2') => void
+- 'game:state': (state: GameState)  // authoritative state broadcast
+- 'move-made': (move: Move)
+- 'turn-changed': (playerId: string)
+- 'timer-sync': (times: TimerState)
+- 'timer-expired': (player: 'player1' | 'player2')
 
-Timer behavior
-- Server is the authority. Timers tick in the background loop and emit 'timer-sync' roughly every 5 seconds.
-- On expiration the server emits 'timer-expired' with the losing timer ('player1'|'player2').
-- Changing turns switches the active timer. Use 'pass-turn' or make a move to switch.
+Timer behavior (secure)
+- The server is the source of truth. Each game has a GameClock with 10 minutes per player.
+- On game start the active player's clock begins. Passing/valid moves switch clocks.
+- Periodic 'timer-sync' messages keep clients visually aligned. On expiration the server emits 'timer-expired' with the losing side.
 
-Bots
-- GET /bots returns a list of basic bots (beginner/easy/medium)
-- POST /games/{gameId}/bot/{botId} attaches a bot to the game. When it is the bot's turn, the server simulates thinking for 2–5 seconds and then emits a placeholder 'move-made' followed by switching the turn.
+Bot (simple)
+- A basic bot can be auto‑attached so players can always be matched.
+- The bot makes a valid move within 30 seconds (simulated in current stub within 2–5s) and then the server switches turns.
 
-Notes
-- This implementation maintains in-memory game state and is suitable for development only.
-- Add persistence, authentication, and validation for production.
+Development notes
+- In‑memory state only; persistence and authentication should be added for production.
+- Event names follow 'game:state' (not 'game-state'). Ensure clients listen to the correct channel.
 
-
-## Database migrations
-
-To apply SQL migrations in correct order, use the master script:
-
+Database migrations
+To apply SQL migrations in the correct order, use the master script in db/Migration:
 1) Open psql connected to your database, then run:
+   
+   \\i 'D:/office/code-red/code-red-server/db/Migration/000_all_in_order.sql'
 
-   \i 'D:/office/code-red/code-red-server/db/Migration/000_all_in_order.sql'
-
-This ensures 001 → 008 run sequentially, avoiding out‑of‑order errors such as missing types (game_mode) or functions (uuid_generate_v4).
-
-If you prefer running individually, always execute files in numerical order.
-
-Notes:
-- 002 and later depend on uuid-ossp; we guard with CREATE EXTENSION IF NOT EXISTS but still recommend running 001 first.
-- Partitioned tables now include the partition key column in their primary keys to satisfy PostgreSQL constraints.
-- Social functions in 006 have been corrected and will compile cleanly.
+If running individually, always execute numbered files in ascending order. See inline notes in migrations for dependencies and partition keys.

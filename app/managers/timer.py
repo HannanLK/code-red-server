@@ -30,7 +30,7 @@ class TimerManager:
         self._clocks: Dict[str, GameClock] = {}
         self._tasks: Dict[str, asyncio.Task] = {}
 
-    def create_clock(self, game_id: str, total_minutes_per_player: int = 15):
+    def create_clock(self, game_id: str, total_minutes_per_player: int = 10):
         total_ms = total_minutes_per_player * 60 * 1000
         clock = GameClock(player1_ms=total_ms, player2_ms=total_ms, current='player1', paused=True, last_ts=time.time())
         self._clocks[game_id] = clock

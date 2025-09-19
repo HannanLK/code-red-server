@@ -39,10 +39,15 @@ class Game:
         if len(self.players) >= 1:
             self.status = 'active'
             # everyone joins room self.id handled outside
-            # Start timer for player1 (index 0)
+            # Randomize starting player and start timer accordingly
+            if len(self.players) >= 2:
+                self.current_idx = random.randint(0, 1)
+            else:
+                self.current_idx = 0
+            # Initialize game clock with default settings
             self.timer.create_clock(self.id)
-            self.timer.start_turn(self.id, 'player1')
-            await self.sio.emit('game-state', self.to_state().model_dump(by_alias=True), room=self.id)
+            self.timer.start_turn(self.id, 'player1' if self.current_idx == 0 else 'player2')
+            await self.sio.emit('game:state', self.to_state().model_dump(by_alias=True), room=self.id)
 
     async def make_move(self, move: Move):
         # In this stub, we just accept and switch turn
@@ -96,7 +101,7 @@ class GameManager:
         # prevent duplicates
         if not any(p.id == player.id for p in game.players):
             game.players.append(player)
-        await self.sio.emit('game-state', game.to_state().model_dump(by_alias=True), room=game_id)
+        await self.sio.emit('game:state', game.to_state().model_dump(by_alias=True), room=game_id)
 
     async def start_game(self, game_id: str):
         game = self.get_or_create(game_id)

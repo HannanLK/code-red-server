@@ -36,3 +36,21 @@ Bots
 Notes
 - This implementation maintains in-memory game state and is suitable for development only.
 - Add persistence, authentication, and validation for production.
+
+
+## Database migrations
+
+To apply SQL migrations in correct order, use the master script:
+
+1) Open psql connected to your database, then run:
+
+   \i 'D:/office/code-red/code-red-server/db/Migration/000_all_in_order.sql'
+
+This ensures 001 → 008 run sequentially, avoiding out‑of‑order errors such as missing types (game_mode) or functions (uuid_generate_v4).
+
+If you prefer running individually, always execute files in numerical order.
+
+Notes:
+- 002 and later depend on uuid-ossp; we guard with CREATE EXTENSION IF NOT EXISTS but still recommend running 001 first.
+- Partitioned tables now include the partition key column in their primary keys to satisfy PostgreSQL constraints.
+- Social functions in 006 have been corrected and will compile cleanly.

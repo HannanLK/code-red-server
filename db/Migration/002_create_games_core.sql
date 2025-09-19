@@ -1,6 +1,9 @@
 -- Migration: 002_create_games_core.sql
 -- Description: Core game tables with performance optimizations
 
+-- Ensure required extensions when running out of order
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 -- Create custom types
 CREATE TYPE game_status AS ENUM ('waiting', 'active', 'paused', 'completed', 'abandoned');
 CREATE TYPE game_mode AS ENUM ('classic', 'timed', 'challenge', 'practice');

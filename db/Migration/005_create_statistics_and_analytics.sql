@@ -26,8 +26,10 @@ CREATE TABLE player_ratings (
 -- Indexes for ratings
 CREATE INDEX idx_player_ratings_user ON player_ratings(user_id);
 CREATE INDEX idx_player_ratings_leaderboard ON player_ratings(game_mode, rating DESC);
-CREATE INDEX idx_player_ratings_active ON player_ratings(game_mode, rating DESC)
-    WHERE last_game_at > CURRENT_DATE - INTERVAL '30 days';
+-- Skipped creating an "active last 30 days" partial index because predicates using CURRENT_DATE are not IMMUTABLE in PostgreSQL and cause migration failures.
+-- If needed, consider a materialized view or a scheduled job to maintain a recent-activity leaderboard.
+-- CREATE INDEX idx_player_ratings_active ON player_ratings(game_mode, rating DESC)
+--     WHERE last_game_at > CURRENT_DATE - INTERVAL '30 days';
 
 -- Player statistics table
 CREATE TABLE player_statistics (

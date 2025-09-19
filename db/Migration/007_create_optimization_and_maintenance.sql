@@ -3,7 +3,7 @@
 
 -- Audit log table for important actions
 CREATE TABLE audit_logs (
-                            id BIGSERIAL PRIMARY KEY,
+                            id BIGSERIAL,
                             user_id UUID REFERENCES users(id) ON DELETE SET NULL,
                             action VARCHAR(100) NOT NULL,
                             entity_type VARCHAR(50), -- 'game', 'user', 'tournament', etc.
@@ -12,7 +12,8 @@ CREATE TABLE audit_logs (
                             new_values JSONB,
                             ip_address INET,
                             user_agent TEXT,
-                            created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+                            created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+                            PRIMARY KEY (id, created_at)
 ) PARTITION BY RANGE (created_at);
 
 -- Create monthly partitions for audit logs
@@ -26,12 +27,13 @@ CREATE INDEX idx_audit_logs_created ON audit_logs(created_at DESC);
 
 -- Performance metrics table
 CREATE TABLE performance_metrics (
-                                     id BIGSERIAL PRIMARY KEY,
+                                     id BIGSERIAL,
                                      metric_name VARCHAR(100) NOT NULL,
                                      metric_value DECIMAL(20,4),
                                      metric_unit VARCHAR(20),
                                      tags JSONB DEFAULT '{}',
-                                     recorded_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+                                     recorded_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+                                     PRIMARY KEY (id, recorded_at)
 ) PARTITION BY RANGE (recorded_at);
 
 -- Create daily partitions for metrics

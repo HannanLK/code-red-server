@@ -271,34 +271,32 @@ CREATE INDEX idx_notifications_expires ON notification_queue(expires_at);
 CREATE OR REPLACE FUNCTION get_mutual_friends(
     p_user1_id UUID,
     p_user2_id UUID
-) RETURNS TABLE(friend_id UUID, username VARCHAR) AS $
+) RETURNS TABLE(friend_id UUID, username VARCHAR) AS $$
 BEGIN
-RETURN QUERY
-SELECT DISTINCT u.id, u.username
-FROM users u
-WHERE u.id IN (
-    -- Friends of user1
-    SELECT CASE
-               WHEN requester_id = p_user1_id THEN addressee_id
-               ELSE requester_id
+    RETURN QUERY
+    SELECT DISTINCT u.id, u.username
+    FROM users u
+    WHERE u.id IN (
+        SELECT CASE
+                   WHEN requester_id = p_user1_id THEN addressee_id
+                   ELSE requester_id
                END
-    FROM friendships
-    WHERE (requester_id = p_user1_id OR addressee_id = p_user1_id)
-      AND status = 'accepted'
-)
-  AND u.id IN (
-    -- Friends of user2
-    SELECT CASE
-               WHEN requester_id = p_user2_id THEN addressee_id
-               ELSE requester_id
+        FROM friendships
+        WHERE (requester_id = p_user1_id OR addressee_id = p_user1_id)
+          AND status = 'accepted'
+    )
+      AND u.id IN (
+        SELECT CASE
+                   WHEN requester_id = p_user2_id THEN addressee_id
+                   ELSE requester_id
                END
-    FROM friendships
-    WHERE (requester_id = p_user2_id OR addressee_id = p_user2_id)
-      AND status = 'accepted'
-)
-  AND u.id NOT IN (p_user1_id, p_user2_id);
+        FROM friendships
+        WHERE (requester_id = p_user2_id OR addressee_id = p_user2_id)
+          AND status = 'accepted'
+    )
+      AND u.id NOT IN (p_user1_id, p_user2_id);
 END;
-$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql;
 
 -- Function to create notification
 CREATE OR REPLACE FUNCTION create_notification(
@@ -307,41 +305,43 @@ CREATE OR REPLACE FUNCTION create_notification(
     p_title VARCHAR,
     p_message TEXT,
     p_data JSONB DEFAULT '{}'
-) RETURNS UUID AS $
+) RETURNS UUID AS $$
 DECLARE
     v_notification_id UUID;
-v_prefs RECORD;
+    v_prefs notification_preferences%ROWTYPE;
 BEGIN
     -- Check user preferences
-SELECT * INTO v_prefs FROM notification_preferences WHERE user_id = p_user_id;
+    SELECT * INTO v_prefs FROM notification_preferences WHERE user_id = p_user_id;
 
--- Check if this type of notification is enabled
-IF (p_type = 'game_invite' AND v_prefs.game_invites = false) OR
-(p_type = 'friend_request' AND v_prefs.friend_requests = false) OR
-(p_type = 'achievement' AND v_prefs.achievement_unlocks = false) THEN
-        RETURN NULL;
-END IF;
+    -- Check if this type of notification is enabled (only if prefs row exists)
+    IF v_prefs.user_id IS NOT NULL THEN
+        IF (p_type = 'game_invite' AND v_prefs.game_invites = false) OR
+           (p_type = 'friend_request' AND v_prefs.friend_requests = false) OR
+           (p_type = 'achievement' AND v_prefs.achievement_unlocks = false) THEN
+            RETURN NULL;
+        END IF;
+    END IF;
 
--- Create notification
-INSERT INTO notification_queue (user_id, notification_type, title, message, data)
-VALUES (p_user_id, p_type, p_title, p_message, p_data)
-RETURNING id INTO v_notification_id;
+    -- Create notification
+    INSERT INTO notification_queue (user_id, notification_type, title, message, data)
+    VALUES (p_user_id, p_type, p_title, p_message, p_data)
+    RETURNING id INTO v_notification_id;
 
-RETURN v_notification_id;
+    RETURN v_notification_id;
 END;
-$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql;
 
 -- Trigger to update club member count
-CREATE OR REPLACE FUNCTION update_club_member_count() RETURNS TRIGGER AS $
+CREATE OR REPLACE FUNCTION update_club_member_count() RETURNS TRIGGER AS $$
 BEGIN
-IF TG_OP = 'INSERT' THEN
-UPDATE clubs SET current_members = current_members + 1 WHERE id = NEW.club_id;
-ELSIF TG_OP = 'DELETE' THEN
-UPDATE clubs SET current_members = current_members - 1 WHERE id = OLD.club_id;
-END IF;
-RETURN NULL;
+    IF TG_OP = 'INSERT' THEN
+        UPDATE clubs SET current_members = current_members + 1 WHERE id = NEW.club_id;
+    ELSIF TG_OP = 'DELETE' THEN
+        UPDATE clubs SET current_members = current_members - 1 WHERE id = OLD.club_id;
+    END IF;
+    RETURN NULL;
 END;
-$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql;
 
 CREATE TRIGGER update_club_members_count
     AFTER INSERT OR DELETE ON club_members

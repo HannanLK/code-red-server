@@ -162,7 +162,7 @@ CREATE INDEX idx_opening_book_usage ON bot_opening_book(usage_count DESC);
 
 -- Bot endgame tablebase (pre-computed endgame positions)
 CREATE TABLE bot_endgame_tablebase (
-                                       id SERIAL PRIMARY KEY,
+                                       id SERIAL UNIQUE,
                                        position_hash VARCHAR(64) PRIMARY KEY,
                                        tiles_remaining INTEGER NOT NULL,
                                        best_move JSONB NOT NULL,
